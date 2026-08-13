@@ -1,0 +1,12 @@
+[submodule "engine"]
+	path = engine
+	url = https://github.com/fa0311/warabi-engine.git
+[submodule "tools"]
+	path = tools
+	url = https://github.com/fa0311/warabi-tools.git
+[submodule "models/reranker-v2-max"]
+	path = models/reranker-v2-max
+	url = https://huggingface.co/fa0311/warabi-reranker-v2-max
+[submodule "models/reranker-v2-lite"]
+	path = models/reranker-v2-lite
+	url = https://huggingface.co/fa0311/warabi-reranker-v2-lite
