@@ -8,3 +8,7 @@ git submodule update --init --recursive
 
 Write-Host "engine build:  cd engine; cargo build --release -p ime-cli --features ime-cli/reranker"
 Write-Host "tools env:     cd tools; uv sync"
+
+# skills -> .claude/skills junctions (machine-local)
+New-Item -ItemType Directory -Force .claude\skills | Out-Null
+Get-ChildItem skills -Directory | ForEach-Object { if (-not (Test-Path ".claude\skills\$($_.Name)")) { New-Item -ItemType Junction -Path ".claude\skills\$($_.Name)" -Target $_.FullName | Out-Null } }
