@@ -10,3 +10,18 @@
 [submodule "models/reranker-v2-lite"]
 	path = models/reranker-v2-lite
 	url = https://huggingface.co/fa0311/warabi-reranker-v2-lite
+[submodule "models/teacher"]
+	path = models/teacher
+	url = https://huggingface.co/fa0311/warabi-reranker-v1
+[submodule "data/dictionary-core"]
+	path = data/dictionary-core
+	url = https://huggingface.co/datasets/fa0311/warabi-dictionary-core
+[submodule "data/dictionary-extended-gpl"]
+	path = data/dictionary-extended-gpl
+	url = https://huggingface.co/datasets/fa0311/warabi-dictionary-extended-gpl
+[submodule "data/context-dataset"]
+	path = data/context-dataset
+	url = https://huggingface.co/datasets/fa0311/warabi-context-dataset
+[submodule "data/note-articles"]
+	path = data/note-articles
+	url = https://huggingface.co/datasets/nakasyou/note-articles
