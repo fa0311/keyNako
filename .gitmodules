@@ -11,7 +11,7 @@
 	path = models/reranker-v2-lite
 	url = https://huggingface.co/fa0311/warabi-reranker-v2-lite
 [submodule "models/teacher"]
-	path = models/teacher
+	path = models/reranker-v1
 	url = https://huggingface.co/fa0311/warabi-reranker-v1
 [submodule "data/dictionary-core"]
 	path = data/dictionary-core

@@ -11,7 +11,7 @@ KeyNako IME — 文脈変換IMEのワークスペース。実体はsubmodule、�
 | `apps/` | (直入れ) | プラットフォームアプリ・PoC |
 | `models/reranker-v2-max` | [HF](https://huggingface.co/fa0311/warabi-reranker-v2-max) | maxモデル(デスクトップGPU級) |
 | `models/reranker-v2-lite` | [HF](https://huggingface.co/fa0311/warabi-reranker-v2-lite) | liteモデル(CPU/モバイル) |
-| `models/teacher` | HF warabi-reranker-v1 | 蒸留の教師(凍結) |
+| `models/reranker-v1` | HF warabi-reranker-v1 | 蒸留の教師(凍結) |
 | `data/` | HF warabi-dictionary-* / warabi-context-dataset | 辞書パック・データセット |
 | `skills/` | (直入れ) | 重要手順のランブック(.claude/skills にリンク) |
 
