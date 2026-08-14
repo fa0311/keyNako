@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.system.Os
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -162,6 +163,10 @@ class MainActivity : ComponentActivity() {
             LazyColumn(Modifier.weight(1f)) {
                 items(candidates) { candidate ->
                     ListItem(
+                        modifier = Modifier.clickable {
+                            context += candidate.text
+                            rawReading = ""
+                        },
                         headlineContent = { Text(candidate.text) },
                         supportingContent = {
                             val score = candidate.blendedScore?.let {
