@@ -32,7 +32,8 @@ data class EngineConfig(
 
 // xnnpack is wired in the engine but not offered: ort's XNNPACK EP mangles
 // dynamic batches (fails the load-time parity gate on every device).
-private val BACKENDS = listOf("cpu", "nnapi")
+// qnn needs a static-shape model (the max-qnn build); on others it errors.
+private val BACKENDS = listOf("cpu", "nnapi", "qnn")
 
 /** Bundled assets are extracted once per APK install (models keep identical
  *  sizes across versions, so only the install timestamp is reliable). */
@@ -79,8 +80,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // ort is built with load-dynamic; point it at the bundled runtime
-        // before the first session is created.
-        Os.setenv("ORT_DYLIB_PATH", "${applicationInfo.nativeLibraryDir}/libonnxruntime.so", true)
+        // before the first session is created. QNN needs its backend library
+        // and the Hexagon skeleton search path on top.
+        val nativeDir = applicationInfo.nativeLibraryDir
+        Os.setenv("ORT_DYLIB_PATH", "$nativeDir/libonnxruntime.so", true)
+        Os.setenv("QNN_BACKEND_PATH", "$nativeDir/libQnnHtp.so", true)
+        Os.setenv("ADSP_LIBRARY_PATH", nativeDir, true)
         setContent { MaterialTheme { Screen() } }
     }
 
