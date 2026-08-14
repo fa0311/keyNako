@@ -1,0 +1,7 @@
+.gradle/
+build/
+local.properties
+# staged by scripts/stage-poc-assets.ps1 (hardlinks to data/ and models/)
+app/assets-staging/
+# build artifacts: cargo ndk (libime_ffi.so) + ORT 1.28 AAR (libonnxruntime.so)
+app/src/main/jniLibs/
