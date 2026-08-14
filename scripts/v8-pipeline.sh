@@ -22,6 +22,15 @@ retry() { # retry <label> <cmd...>
   echo "[$label] FAILED" >&2; return 1
 }
 
+echo "== stage 0: score the note-token tail (GPU) =="
+# v7 used the 200k head of the note-token slice; v8 uses all ~396k natural
+# rows — the broadest coverage of real verb/homophone context distribution
+# (targets the context-blind "attractor word" failures found in qualitative
+# testing). Sidecars are per-source-file, so the full file scores fresh.
+retry score-note uv run ime-score-teacher --teacher "$ROOT/models/reranker-v1" \
+  --input "$ART/materialized/note-v1/train.jsonl" \
+  --output-dir "$ART/teacher-logits-v7" --rows-per-batch 8 --resume
+
 echo "== stage 1: train max-v8 (continuation) =="
 retry train uv run ime-distill --student max \
   --init-from "$ART/students/max-v8-init" \
@@ -29,7 +38,7 @@ retry train uv run ime-distill --student max \
   --train "$ART/materialized/v1/train.jsonl" \
   --train "$ART/materialized/v1/train.jsonl" \
   --train "$ART/materialized/lexical-v1/train.jsonl" \
-  --train "$ART/materialized/note-v1/train-200k.jsonl" \
+  --train "$ART/materialized/note-v1/train.jsonl" \
   --train "$ART/materialized/bunsetsu-v7/train.jsonl" \
   --train "$ART/materialized/noctx-v7/train.jsonl" \
   --train "$ART/materialized/noctx-v7/train.jsonl" \
