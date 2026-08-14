@@ -12,12 +12,23 @@ New-Item -ItemType Directory -Force "$app\src\main\jniLibs\arm64-v8a" | Out-Null
 Copy-Item "$root\engine\target\aarch64-linux-android\release\libime_ffi.so" "$app\src\main\jniLibs\arm64-v8a\"
 Copy-Item $OrtSo "$app\src\main\jniLibs\arm64-v8a\"
 
-New-Item -ItemType Directory -Force "$app\assets-staging\model" | Out-Null
+if (Test-Path "$app\assets-staging\model") { Remove-Item -Recurse -Force "$app\assets-staging\model" -Confirm:$false }
 $stage = @{
     "$app\assets-staging\dictionary.sqlite3" = "$root\data\dictionary-core\dictionary.sqlite3"
 }
-foreach ($f in "model.onnx", "ime_reranker.json", "vocab.txt", "parity_cases.json") {
-    $stage["$app\assets-staging\model\$f"] = "$root\models\reranker-v2-lite\$f"
+# Every present tier ships in the APK; absent tiers (e.g. std before its
+# gate) are simply skipped and the app enumerates what it finds.
+$tiers = @{
+    max  = "$root\models\reranker-v2-max"
+    std  = "$root\models\reranker-v2-std"
+    lite = "$root\models\reranker-v2-lite"
+}
+foreach ($tier in $tiers.GetEnumerator()) {
+    if (-not (Test-Path $tier.Value)) { continue }
+    New-Item -ItemType Directory -Force "$app\assets-staging\models\$($tier.Key)" | Out-Null
+    foreach ($f in "model.onnx", "ime_reranker.json", "vocab.txt", "parity_cases.json") {
+        $stage["$app\assets-staging\models\$($tier.Key)\$f"] = "$($tier.Value)\$f"
+    }
 }
 foreach ($entry in $stage.GetEnumerator()) {
     if (Test-Path $entry.Key) { Remove-Item $entry.Key -Force -Confirm:$false }

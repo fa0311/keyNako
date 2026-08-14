@@ -685,6 +685,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Int
     external fun uniffi_ime_ffi_checksum_constructor_ime_new_no_kaomoji(
     ): Int
+    external fun uniffi_ime_ffi_checksum_constructor_ime_new_with(
+    ): Int
     external fun ffi_ime_ffi_uniffi_contract_version(
     ): Int
 
@@ -710,6 +712,8 @@ internal object UniffiLib {
     external fun uniffi_ime_ffi_fn_constructor_ime_new(`dictionaryPath`: RustBuffer.ByValue,`rerankerDir`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_ime_ffi_fn_constructor_ime_new_no_kaomoji(`dictionaryPath`: RustBuffer.ByValue,`rerankerDir`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    external fun uniffi_ime_ffi_fn_constructor_ime_new_with(`dictionaryPath`: RustBuffer.ByValue,`rerankerDir`: RustBuffer.ByValue,`noKaomoji`: Byte,`backend`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
     external fun uniffi_ime_ffi_fn_method_ime_backend_name(`ptr`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -854,6 +858,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_ime_ffi_checksum_constructor_ime_new_no_kaomoji() != 23798) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_ime_ffi_checksum_constructor_ime_new_with() != 38017) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -1497,6 +1504,27 @@ open class Ime: Disposable, AutoCloseable, ImeInterface
         
         FfiConverterString.lower(`dictionaryPath`),
         FfiConverterOptionalString.lower(`rerankerDir`),_status)
+}
+    )
+    }
+    
+
+        
+    /**
+     * Full-options constructor: kaomoji exclusion plus an execution backend
+     * for the reranker ("cpu" | "nnapi" | "xnnpack"; None = cpu). Backends
+     * are build-time features — requesting one this build lacks errors.
+     */
+    @Throws(ImeException::class) fun `newWith`(`dictionaryPath`: kotlin.String, `rerankerDir`: kotlin.String?, `noKaomoji`: kotlin.Boolean, `backend`: kotlin.String?): Ime {
+            return FfiConverterTypeIme.lift(
+    uniffiRustCallWithError(ImeException) { _status ->
+    UniffiLib.uniffi_ime_ffi_fn_constructor_ime_new_with(
+    
+        
+        FfiConverterString.lower(`dictionaryPath`),
+        FfiConverterOptionalString.lower(`rerankerDir`),
+        FfiConverterBoolean.lower(`noKaomoji`),
+        FfiConverterOptionalString.lower(`backend`),_status)
 }
     )
     }
