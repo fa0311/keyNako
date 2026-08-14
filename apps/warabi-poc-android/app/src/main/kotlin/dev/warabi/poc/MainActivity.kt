@@ -24,21 +24,25 @@ import java.io.File
 /** Bundled assets are extracted once; sqlite and ort need real file paths. */
 private fun installAssets(activity: ComponentActivity, report: (String) -> Unit): File {
     val root = File(activity.filesDir, "warabi")
-    // stored uncompressed (noCompress) -> openFd gives the exact size to skip
-    // the 500MB copy on later launches; the small json/txt just copy always
-    val sized = listOf("dictionary.sqlite3", "model/model.onnx")
-    val always = listOf("model/ime_reranker.json", "model/parity_cases.json", "model/vocab.txt")
-    for (name in sized + always) {
-        val target = File(root, name)
-        if (name in sized) {
-            val expected = activity.assets.openFd(name).use { it.length }
-            if (target.length() == expected) continue
+    // Re-extract when the APK changes: model updates keep identical file
+    // sizes (same architecture), so only the install timestamp is reliable.
+    val stamp = File(root, ".apk-stamp")
+    val installedAt = activity.packageManager
+        .getPackageInfo(activity.packageName, 0).lastUpdateTime.toString()
+    if (stamp.takeIf { it.isFile }?.readText() != installedAt) {
+        val names = listOf(
+            "dictionary.sqlite3", "model/model.onnx",
+            "model/ime_reranker.json", "model/parity_cases.json", "model/vocab.txt",
+        )
+        for (name in names) {
             report("展開中: $name")
+            val target = File(root, name)
+            target.parentFile?.mkdirs()
+            activity.assets.open(name).use { input ->
+                target.outputStream().use { input.copyTo(it, 1 shl 20) }
+            }
         }
-        target.parentFile?.mkdirs()
-        activity.assets.open(name).use { input ->
-            target.outputStream().use { input.copyTo(it, 1 shl 20) }
-        }
+        stamp.writeText(installedAt)
     }
     return root
 }
