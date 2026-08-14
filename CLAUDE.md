@@ -23,6 +23,8 @@ KeyNako IME(製品)/ Warabi Engine(変換エンジン)。構成は README.md、�
 
 - **ort移行完了**: OrtReranker(パリティゲート内蔵)+ONNXエクスポータ、Burn削除済み。
   v6b(ort)=同音異義語ベンチ39/39、デスクトップCPU 113〜149ms/変換。ビルドは `engine/target`(target-dirリダイレクト廃止)。
-- 認定候補: max系=v6b(models/reranker-v2-max に未コミットで配置済み)、lite系=lite-c1(同v2-lite)。
-- 次の大仕事: ①v7文節マイニング(タスク#16) ②Android PoC(apps/、文脈+読み入力→候補表示)。
+- v7(文節世代)完成: 全キャッシュ再生成→教師採点→学習を scripts/v7-pipeline.sh で完走。
+  dev top1 82.96%(v1+文節混合)、同音異義語39/39維持、うまるちゃん#1回復。較正 w=0.08。
+- 認定候補: max系=v7(models/reranker-v2-max に未コミットで配置済み)、lite系=lite-c1(同v2-lite、v7教師での再蒸留待ち)。
+- 次の大仕事: ①新評価基準の設計(v7スコープ残) ②lite再蒸留(v7教師) ③Android PoC(apps/、文脈+読み入力→候補表示)。
 - 旧 D:\ime は移行残作業(キャッシュ再生成レシピの確認)後に削除予定。
