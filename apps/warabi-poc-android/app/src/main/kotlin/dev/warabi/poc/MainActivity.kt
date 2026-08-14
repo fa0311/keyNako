@@ -30,7 +30,9 @@ data class EngineConfig(
     val kaomoji: Boolean,
 )
 
-private val BACKENDS = listOf("cpu", "nnapi", "xnnpack")
+// xnnpack is wired in the engine but not offered: ort's XNNPACK EP mangles
+// dynamic batches (fails the load-time parity gate on every device).
+private val BACKENDS = listOf("cpu", "nnapi")
 
 /** Bundled assets are extracted once per APK install (models keep identical
  *  sizes across versions, so only the install timestamp is reliable). */
