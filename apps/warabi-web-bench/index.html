@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Warabi web bench</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; }
+  table { border-collapse: collapse; margin-top: 1rem; }
+  td, th { border: 1px solid #ccc; padding: .4rem .8rem; text-align: right; }
+  td:first-child, th:first-child { text-align: left; }
+  button { margin-right: .5rem; padding: .4rem 1rem; }
+  #log { color: #666; font-size: .9rem; white-space: pre-line; }
+</style>
+</head>
+<body>
+<h1>Warabi web bench</h1>
+<p>32候補バッチのリランカー推論を WASM / WebGPU で計測(20回平均、ウォームアップ3回)。</p>
+<div>
+  <button data-model="lite">lite</button>
+  <button data-model="max">max</button>
+</div>
+<table id="results"><tr><th>モデル</th><th>EP</th><th>mean</th><th>p50</th><th>min</th></tr></table>
+<p id="log"></p>
+<script src="dist/ort.all.min.js"></script>
+<script type="module">
+import { loadVocab, encodeTriple, batchTensors } from "./tokenizer.mjs";
+ort.env.wasm.wasmPaths = "dist/";
+
+const log = (m) => { document.getElementById("log").textContent += m + "\n"; };
+const candidates = [
+  "帰る","変える","代える","替える","換える","返る","還る","孵る",
+  "蛙","カエル","かえる","買える","飼える","帰える","却る","反る",
+  "帰るか","変えるか","帰ると","変えると","帰るの","変えるの","帰るが",
+  "変えるが","帰るよ","変えるよ","帰るね","変えるね","帰るし","変えるし",
+  "帰るぞ","変えるぞ",
+];
+
+async function loadModel(name) {
+  const [vocabText, meta, model] = await Promise.all([
+    fetch(`models/${name}/vocab.txt`).then((r) => r.text()),
+    fetch(`models/${name}/ime_reranker.json`).then((r) => r.json()),
+    fetch(`models/${name}/model.onnx`).then((r) => r.arrayBuffer()),
+  ]);
+  return { vocab: loadVocab(vocabText), meta, model };
+}
+
+async function benchEp(name, assets, ep) {
+  log(`${name}/${ep}: セッション作成中…`);
+  let session;
+  try {
+    session = await ort.InferenceSession.create(assets.model, { executionProviders: [ep] });
+  } catch (error) {
+    log(`${name}/${ep}: 利用不可 (${error.message})`);
+    return null;
+  }
+  const sequences = candidates.map((candidate) => encodeTriple(
+    assets.vocab, "家に", "かえる", candidate,
+    assets.meta.max_length, assets.meta.context_chars));
+  const { ids, mask, batch, width } = batchTensors(sequences);
+  const feed = {
+    input_ids: new ort.Tensor("int64", ids, [batch, width]),
+    attention_mask: new ort.Tensor("int64", mask, [batch, width]),
+  };
+  for (let i = 0; i < 3; i++) await session.run(feed);
+  const times = [];
+  for (let i = 0; i < 20; i++) {
+    const start = performance.now();
+    await session.run(feed);
+    times.push(performance.now() - start);
+  }
+  times.sort((a, b) => a - b);
+  return {
+    mean: times.reduce((a, b) => a + b) / times.length,
+    p50: times[10],
+    min: times[0],
+  };
+}
+
+document.querySelectorAll("button").forEach((btn) => btn.addEventListener("click", async () => {
+  const name = btn.dataset.model;
+  const assets = await loadModel(name);
+  for (const ep of ["wasm", ...(navigator.gpu ? ["webgpu"] : [])]) {
+    const r = await benchEp(name, assets, ep);
+    if (!r) continue;
+    const row = document.getElementById("results").insertRow();
+    [name, ep, r.mean.toFixed(1), r.p50.toFixed(1), r.min.toFixed(1)]
+      .forEach((v) => { row.insertCell().textContent = v; });
+    log(`${name}/${ep}: ${r.mean.toFixed(1)}ms`);
+  }
+}));
+</script>
+</body>
+</html>
