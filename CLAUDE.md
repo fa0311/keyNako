@@ -26,9 +26,13 @@ KeyNako IME(製品)/ Warabi Engine(変換エンジン)。構成は README.md、�
 - v8(語彙世代)完成: vocab 16,384(漢字全部入り・顔文字98%可視・絵文字97.5%、コードポイント順)。
   ime-extend-vocab の恒等拡張(drift 0)→継続学習。dev top1 83.16%、ブレンド86.03%(w=0.05)、
   同音異義語38/39(詠む/読むのノイズ差1件)、アトラクタプローブ11/14(v7比+1)。
-- 認定: max系=v8、lite系=lite-v7(dev 83.59%、ブレンド85.75%、同音異義語32/39)。
+- 認定: max系=v8(38/39)、lite系=lite-v8(dev 84.03%、ブレンド85.99%、36/39、実機33ms)。
   models/reranker-v2-{max,lite} に未コミットで配置済み。
-- Android PoC完成(apps/warabi-poc-android): 実機動作、lite搭載、82ms/変換@S24。
-  アセットは scripts/stage-poc-assets.ps1 でステージング(gitには入れない)。
-- 次: ①新評価基準の設計(アトラクタ14/qualitativeプローブを種に) ②std容量診断の判定 ③lite-v8。
-- 旧 D:\ime は移行残作業(キャッシュ再生成レシピの確認)後に削除予定。
+- **tier実験の判定**(詳細は docs/research-log.md): 深さ>幅、教師信号の質が最安レバー。
+  総合王者は deep-lite-b(6L×256、7.9M、dev 85.20%、ブレンド87.27%、36/39)→ v9で正式tier化検討。
+  現std(4L×512)は廃止候補。QNNは凍結(HTP非ネイティブ実行、タスク#25に再開手順)。
+- Android PoC完成(apps/warabi-poc-android): 実機動作、モデル/バックエンド切替UI付き、
+  lite-v8で32〜41ms/変換@S24。アセットは scripts/stage-poc-assets.ps1(gitには入れない)。
+- 次: ①新評価基準の設計(#19) ②v9 tier再編(細く深く) ③Web展開調査(#26)。
+- 旧 D:\ime: ime-context-tools(17GB)は削除済み(貴重物は C:\Users\yuki\ime-archive に退避)。
+  残り~1GBはユーザー判断待ち。

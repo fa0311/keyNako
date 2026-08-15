@@ -29,7 +29,9 @@ $tiers = @{
     lite = "$root\models\reranker-v2-lite"
     # comparison builds (internal iterations; PoC app only, never published)
     "max-v7"  = "$root\tools\artifacts\exports\max-v7"
-    "max-qnn" = "$root\tools\artifacts\exports\max-qnn-a8w8"
+    "std-v8"  = "$root\tools\artifacts\exports\std-v8"
+    "deep"    = "$root\tools\artifacts\exports\deep-lite-v8b"
+    "max-qnn" = "$root\tools\artifacts\exports\max-qnn-v3"
 }
 foreach ($tier in $tiers.GetEnumerator()) {
     if (-not (Test-Path $tier.Value)) { continue }
