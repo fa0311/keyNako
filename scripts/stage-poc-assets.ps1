@@ -36,11 +36,12 @@ $tiers = @{
 foreach ($tier in $tiers.GetEnumerator()) {
     if (-not (Test-Path $tier.Value)) { continue }
     New-Item -ItemType Directory -Force "$app\assets-staging\models\$($tier.Key)" | Out-Null
-    foreach ($f in "model.onnx", "ime_reranker.json", "vocab.txt", "parity_cases.json") {
+    foreach ($f in "model.onnx", "ime_reranker.json", "vocab.txt", "parity_cases.json", "config.json") {
         $stage["$app\assets-staging\models\$($tier.Key)\$f"] = "$($tier.Value)\$f"
     }
 }
 foreach ($entry in $stage.GetEnumerator()) {
+    if (-not (Test-Path $entry.Value)) { continue }  # optional files (e.g. config.json on quantized builds)
     if (Test-Path $entry.Key) { Remove-Item $entry.Key -Force -Confirm:$false }
     New-Item -ItemType HardLink -Path $entry.Key -Target $entry.Value | Out-Null
 }

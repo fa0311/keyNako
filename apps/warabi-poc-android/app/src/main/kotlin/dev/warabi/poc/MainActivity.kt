@@ -92,12 +92,21 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun Screen() {
         var ready by remember { mutableStateOf<File?>(null) }
-        var models by remember { mutableStateOf(listOf<String>()) }
+        var models by remember { mutableStateOf(mapOf<String, String>()) }
         val statusText by status.collectAsState()
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
                 val root = installAssets(this@MainActivity) { status.value = it }
-                models = assets.list("models").orEmpty().sorted()
+                models = assets.list("models").orEmpty().sorted().associateWith { name ->
+                    // architecture label straight from the model's config.json
+                    runCatching {
+                        val config = org.json.JSONObject(
+                            assets.open("models/$name/config.json")
+                                .bufferedReader().use { it.readText() }
+                        )
+                        "${config.optInt("n_layers")}層×${config.optInt("dim")}"
+                    }.getOrDefault("")
+                }
                 ready = root
             }
         }
@@ -121,9 +130,9 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun App(root: File, models: List<String>) {
+    private fun App(root: File, models: Map<String, String>) {
         var config by remember {
-            mutableStateOf(EngineConfig(models.firstOrNull() ?: "lite", "cpu", kaomoji = true))
+            mutableStateOf(EngineConfig(models.keys.firstOrNull() ?: "lite", "cpu", kaomoji = true))
         }
         var active by remember { mutableStateOf<Ime?>(null) }
         var loadError by remember { mutableStateOf<String?>(null) }
@@ -169,7 +178,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun Settings(
-        models: List<String>,
+        models: Map<String, String>,
         current: EngineConfig,
         error: String?,
         onApply: (EngineConfig) -> Unit,
@@ -184,13 +193,13 @@ class MainActivity : ComponentActivity() {
             Spacer(Modifier.height(16.dp))
 
             Text("モデル", style = MaterialTheme.typography.titleMedium)
-            models.forEach { name ->
+            models.forEach { (name, arch) ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().clickable { model = name },
                 ) {
                     RadioButton(selected = model == name, onClick = { model = name })
-                    Text(name)
+                    Text(if (arch.isBlank()) name else "$name($arch)")
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -297,8 +306,14 @@ class MainActivity : ComponentActivity() {
                 Text("エラー: $error", color = MaterialTheme.colorScheme.error)
             }
             Spacer(Modifier.height(8.dp))
+            // algorithmic rank = search-cost order within the shown window;
+            // AI rank = the engine's blended display order
+            val algoRank = candidates
+                .sortedBy { it.searchCost }
+                .withIndex()
+                .associate { (index, candidate) -> candidate.text to index + 1 }
             LazyColumn(Modifier.weight(1f)) {
-                items(candidates) { candidate ->
+                items(candidates.withIndex().toList()) { (index, candidate) ->
                     ListItem(
                         modifier = Modifier.clickable {
                             context += candidate.text
@@ -309,7 +324,9 @@ class MainActivity : ComponentActivity() {
                             val score = candidate.blendedScore?.let {
                                 "blend=%.3f".format(it)
                             } ?: "cost=${candidate.searchCost}"
-                            Text("${candidate.kind}  $score", fontFamily = FontFamily.Monospace)
+                            val ranks = "算${algoRank[candidate.text]}位→AI${index + 1}位"
+                            Text("$ranks  ${candidate.kind}  $score",
+                                 fontFamily = FontFamily.Monospace)
                         },
                     )
                     HorizontalDivider()
