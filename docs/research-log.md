@@ -103,6 +103,11 @@ tier: max(6L×768) / standard(4L×512) / lite(4L×256) / deep-lite(6L×256, 実�
   OpenVINO)は配線予定 — 小型モデルはGPU利得なし(Burn期実測: GPU 13.7 vs CPU 12.5ms)、
   maxクラスのみ価値。INT8はCPUでは逆効果(u16活性が非最適経路で+20%遅)。
 
+**モバイルmax実行(2026-08-16決着)**: Pixel 9のNNAPI(Tensor TPU)で**素のmax(55M)が112〜148ms**
+— 量子化・グラフ手術なしで成立(TensorのNNAPIはTransformerネイティブ)。Snapdragon側は
+QNN HTP(2.3〜52s)・QNN GPU/Adreno(20〜47s)とも自力変換は全滅で、残る道はQualcomm AI Hub
+(公式コンパイラ)のみ。教訓: ベンダーアクセラレータは「対応表」ではなく実測で決まる。
+
 **モバイル**(S24/SD8Gen3):
 - CPUが最適解(NNAPI: liteで+10ms・maxで利得なし、初回形状+50%。XNNPACK: 動的バッチ破壊
   =ゲートで恒久棄却)。
