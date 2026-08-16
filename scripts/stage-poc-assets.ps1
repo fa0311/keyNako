@@ -11,9 +11,9 @@ $app = "$root\apps\warabi-poc-android\app"
 
 New-Item -ItemType Directory -Force "$app\src\main\jniLibs\arm64-v8a" | Out-Null
 Copy-Item "$root\engine\target\aarch64-linux-android\release\libime_ffi.so" "$app\src\main\jniLibs\arm64-v8a\"
-Copy-Item "$OrtQnnDir\extracted\jni\arm64-v8a\libonnxruntime.so" "$app\src\main\jniLibs\arm64-v8a\"
+Copy-Item "$env:USERPROFILE\ime-archive\libonnxruntime.so" "$app\src\main\jniLibs\arm64-v8a\"  # standard ORT (NNAPI EP included); QNN needs its dedicated build
 foreach ($qnn in "libQnnSystem.so", "libQnnHtp.so", "libQnnHtpPrepare.so",
-                 "libQnnHtpV75Skel.so", "libQnnHtpV75Stub.so") {
+                 "libQnnHtpV75Skel.so", "libQnnHtpV75Stub.so", "libQnnGpu.so") {
     Copy-Item "$OrtQnnDir\qnn-rt\jni\arm64-v8a\$qnn" "$app\src\main\jniLibs\arm64-v8a\"
 }
 
@@ -31,7 +31,7 @@ $tiers = @{
     "max-v7"  = "$root\tools\artifacts\exports\max-v7"
     "std-v8"  = "$root\tools\artifacts\exports\std-v8"
     "deep"    = "$root\tools\artifacts\exports\deep-lite-v8b"
-    "max-qnn" = "$root\tools\artifacts\exports\max-qnn-v3"
+    "max-qnn" = "$root\tools\artifacts\exports\max-qnn"  # fp32 static (GPU backend runs it at fp16)
 }
 foreach ($tier in $tiers.GetEnumerator()) {
     if (-not (Test-Path $tier.Value)) { continue }
